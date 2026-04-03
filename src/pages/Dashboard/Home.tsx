@@ -13,9 +13,9 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
-  const fetchProducts = async (value) => {
+  const fetchProducts = async (value='') => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -33,13 +33,17 @@ export default function Home() {
         setProducts(data.data);
     } catch (err) {
       console.error("Product fetch error:", err);
-      setError("Error: check console");
+      setError("Error check console");
       setProducts([]); // Fallback empty
     } finally {
       setLoading(false);
     }
 
   };
+
+  useEffect(() => {
+    fetchProducts("");
+  }, []);
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -120,15 +124,28 @@ export default function Home() {
             ) : (
               products.slice(0, 4).map((product, index) => (
                 <div key={product.id || index} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-                  <div className="flex items-end justify-between mt-5">
+                  <div className="flex items-end justify-between">
                     <div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {product.name || 'Unnamed Product'}
-                      </span>
-                      <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                        ${product.price || 0}
+                      <img
+                        style={{
+                            width: "120px",
+                            height: "120px",
+                            objectFit: "cover",
+                            marginTop: "10px"
+                        }}
+                        src={`${BASE_URL}uploads/${product.image}`} />
+                        <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                        ${product.mrp || 0}
                       </h4>
                     </div>
+
+                    <div>
+                      <b>
+                        {product.name || 'Unnamed Product'}
+                      </b>
+                      <span> {product.short_description}</span>
+                    </div>
+                    
                   </div>
                 </div>
               ))
@@ -136,29 +153,7 @@ export default function Home() {
           </div>
         </div>
 
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <div className="col-span-12 space-y-6 xl:col-span-7">
-          <EcommerceMetrics />
-
-          <MonthlySalesChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <MonthlyTarget />
-        </div>
-
-        <div className="col-span-12">
-          <StatisticsChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <DemographicCard />
-        </div>
-
-        <div className="col-span-12 xl:col-span-7">
-          <RecentOrders />
-        </div>
-      </div>
+     
     </>
   );
 }
