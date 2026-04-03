@@ -1,17 +1,28 @@
-import { useEffect, useState } from "react";
-import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
-import StatisticsChart from "../../components/ecommerce/StatisticsChart";
-import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
-import RecentOrders from "../../components/ecommerce/RecentOrders";
-import DemographicCard from "../../components/ecommerce/DemographicCard";
+import {useEffect, useState } from "react";
+interface Product {
+  id: number | string;
+  name: string;
+  image: string;
+  mrp: number;
+  sale_price: number;
+  qty: number;
+  short_description: string;
+  selectRef?: HTMLSelectElement;
+}
+
+interface CartItem {
+  product_id: number | string;
+  qty: number;
+}
+
 import PageMeta from "../../components/common/PageMeta";
 import Button from "../../components/ui/button/Button";
 
 export default function Home() {
   const BASE_URL = import.meta.env.VITE_POS_STORE_BASE_URL;
   const [search, setSearch] = useState("");
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -29,12 +40,10 @@ export default function Home() {
       );
       if (!response.ok) throw new Error("Failed to fetch products");
         const data = await response.json();
-        console.log(data)
         setProducts(data.data);
     } catch (err) {
-      console.error("Product fetch error:", err);
       setError("Error check console");
-      setProducts([]); // Fallback empty
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -45,10 +54,29 @@ export default function Home() {
     fetchProducts("");
   }, []);
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    setCartCount(new Set(cart.map((item: CartItem) => item.product_id)).size);
+  }, []);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
-    fetchProducts(value); // call API on typing
+    fetchProducts(value);
+  };
+
+const handleAddToCart = (productId: string, selectElement: HTMLSelectElement) => {
+    const qty = parseInt(selectElement.value);
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingIndex = cart.findIndex((item: CartItem) => item.product_id === productId);
+    if (existingIndex > -1) {
+      cart[existingIndex].qty += qty;
+    } else {
+      cart.push({ product_id: productId, qty });
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    setCartCount(new Set(cart.map((item: CartItem) => item.product_id)).size);
+    console.log('Added to cart:', { productId, qty, totalItems: cart.length });
   };
 
   return (
@@ -98,7 +126,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 4.5A2 2 0 005.5 18H16a2 2 0 002-2v-.5a1 1 0 00-1-1H4" />
                   </svg>
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    0
+                    {cartCount}
                   </span>
                 </Button>
             </div>
@@ -168,7 +196,11 @@ export default function Home() {
                         <option>9</option>
                         <option>10</option>
                       </select>
-                      <Button size="sm" className="flex-1 font-medium shadow-sm hover:shadow-md" variant="primary">
+                      <Button size="sm" className="flex-1 font-medium shadow-sm hover:shadow-md" variant="primary" onClick={(e) => {
+                          const button = e.currentTarget;
+                          const select = button.previousElementSibling as HTMLSelectElement;
+                          if (select) handleAddToCart(product.id as string, select);
+                        }}>
                         <svg className="w-4 h-4 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 4.5A2 2 0 005.5 18H16a2 2 0 002-2v-.5a1 1 0 00-1-1H4" />
                         </svg>
