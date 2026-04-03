@@ -1,8 +1,8 @@
-# Cart Button Update - TODO ✅
+# Add Toast Notification After Add to Cart
 
-## Plan Breakdown
-- [x] Step 1: Create/edit cart button in Home.tsx with icon + badge
-- [x] Step 2: Verify update successful (edit applied correctly)
-- [x] Step 3: Mark complete
+## Steps:
+- [x] 1. Install sonner toast library
+- [x] 2. Add <Toaster /> to src/App.tsx
+- [x] 3. Add toast.success call in Home.tsx handleAddToCart
+- [x] 4. Test functionality
 
-✅ Task completed: Cart button updated with shopping cart SVG icon and red badge showing product count "0". Badge positioned top-right. View in browser via dev server.

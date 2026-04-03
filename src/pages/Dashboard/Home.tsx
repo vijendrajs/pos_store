@@ -1,6 +1,10 @@
 import {useEffect, useState, useCallback } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../../components/ui/modal";
+import PageMeta from "../../components/common/PageMeta";
+import Button from "../../components/ui/button/Button";
+import { toast } from "sonner";
+
 interface Product {
   id: number | string;
   name: string;
@@ -21,9 +25,6 @@ interface CartItem {
   sale_price: number;
   image: string;
 }
-
-import PageMeta from "../../components/common/PageMeta";
-import Button from "../../components/ui/button/Button";
 
 export default function Home() {
   const BASE_URL = import.meta.env.VITE_POS_STORE_BASE_URL;
@@ -63,7 +64,7 @@ export default function Home() {
     fetchProducts("");
   }, []);
 
-// Update cartItems whenever cart changes (key for refresh)
+  // Update cartItems whenever cart changes (key for refresh)
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     setCartCount(new Set(cart.map((item: CartItem) => item.product_id)).size);
@@ -76,7 +77,7 @@ export default function Home() {
     fetchProducts(value);
   };
 
-const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, name: string, short_description: string, mrp: number, sale_price: number, image: string) => {
+  const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, name: string, short_description: string, mrp: number, sale_price: number, image: string) => {
     const qty = parseInt(selectElement.value);
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingIndex = cart.findIndex((item: CartItem) => item.product_id === productId);
@@ -86,6 +87,7 @@ const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, na
       cart.push({ product_id: productId, qty, name: name, short_description: short_description, mrp: mrp, sale_price:sale_price, image:image});
     }
     localStorage.setItem('cart', JSON.stringify(cart));
+    toast.success("Product added to cart!");
     setCartCount(new Set(cart.map((item: CartItem) => item.product_id)).size);
     console.log('Added to cart:', { productId, qty, totalItems: cart.length });
     setCartItems(cart);
@@ -235,11 +237,6 @@ const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, na
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart ({cartCount})</h2>
-          <Button size="sm" variant="outline" onClick={closeModal}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </Button>
         </div>
         
         {cartItems.length === 0 ? (
@@ -282,23 +279,48 @@ const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, na
                     </div>
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-sm font-semibold text-gray-800 dark:text-white">Qty: {item.qty}</span>
-                      <Button size="sm" variant="outline" className="px-3 py-1 text-xs">
-                        Remove
-                      </Button>
+                          <Button size="sm" variant="outline" className="px-3 py-1 text-xs" onClick={(e) => {
+                            e.stopPropagation();
+                            const currentId = item.product_id;
+                            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                            const newCart = cart.filter((cartItem: CartItem) => cartItem.product_id !== currentId);
+                            localStorage.setItem('cart', JSON.stringify(newCart));
+                            setCartItems(newCart);
+                            setCartCount(new Set(newCart.map((cartItem: CartItem) => cartItem.product_id)).size);
+                          }}>
+                            Remove
+                          </Button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">Total Items: {cartCount}</span>
-                <Button size="md" className="w-32" variant="primary">
-                  Checkout
-                </Button>
-              </div>
-            </div>
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Sub Total:</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        ₹{cartItems.reduce((sum, item) => sum + (item.mrp * item.qty), 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-300">Discount:</span>
+                      <span className="text-green-600 font-semibold">- ₹{cartItems.reduce((sum, item) => sum + (item.mrp - item.sale_price * item.qty), 0).toLocaleString()}</span>
+                    </div>
+                    <div className="border-t pt-3 border-gray-200 dark:border-gray-600">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span className="text-gray-900 dark:text-white">Total:</span>
+                        <span className="text-gray-900 dark:text-white">
+                          ₹{cartItems.reduce((sum, item) => sum + (item.sale_price * item.qty), 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    <Button size="lg" className="w-full font-semibold" variant="primary">
+                      Proceed to Checkout
+                    </Button>
+                  </div>
+                </div>
           </div>
         )}
       </div>
