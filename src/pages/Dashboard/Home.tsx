@@ -65,14 +65,14 @@ export default function Home() {
     fetchProducts(value);
   };
 
-const handleAddToCart = (productId: string, selectElement: HTMLSelectElement) => {
+const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, name: string, short_description: string, mrp: number, sale_price: number) => {
     const qty = parseInt(selectElement.value);
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingIndex = cart.findIndex((item: CartItem) => item.product_id === productId);
     if (existingIndex > -1) {
-      cart[existingIndex].qty += qty;
+      cart[existingIndex].qty = qty;
     } else {
-      cart.push({ product_id: productId, qty });
+      cart.push({ product_id: productId, qty, name: name, short_description: short_description, mrp: mrp, sale_price:sale_price});
     }
     localStorage.setItem('cart', JSON.stringify(cart));
     setCartCount(new Set(cart.map((item: CartItem) => item.product_id)).size);
@@ -199,7 +199,7 @@ const handleAddToCart = (productId: string, selectElement: HTMLSelectElement) =>
                       <Button size="sm" className="flex-1 font-medium shadow-sm hover:shadow-md" variant="primary" onClick={(e) => {
                           const button = e.currentTarget;
                           const select = button.previousElementSibling as HTMLSelectElement;
-                          if (select) handleAddToCart(product.id as string, select);
+                          if (select) handleAddToCart(product.id as string, select, product.name as string, product.short_description as string, product.mrp as number, product.sale_price as number);
                         }}>
                         <svg className="w-4 h-4 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 4.5A2 2 0 005.5 18H16a2 2 0 002-2v-.5a1 1 0 00-1-1H4" />
