@@ -137,20 +137,13 @@ export default function Home() {
                           e.currentTarget.style.display = 'none';
                         }} 
                       />
-                      <div className="flex flex-col gap-1 mb-3">
+                      <div className="flex flex-col gap-1 mb-3 mt-2">
                         <div className="flex items-baseline gap-2">
                           <span className="text-sm font-medium text-gray-500 line-through dark:text-gray-400">
                             ₹{product.mrp}
                           </span>
                           <span className="text-md font-bold text-brand-600 dark:text-brand-400">
                             ₹{product.sale_price}
-                          </span>
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full transition-colors ${
-                            (product.qty || 0) > 0 
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-200' 
-                              : 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-200'
-                          }`} title={(product.qty || 0) > 0 ? 'In Stock' : 'Out of Stock'}>
-                            {(product.qty || 0) > 0 ? '✓' : '✗'}
                           </span>
                         </div>
                       </div>
@@ -161,9 +154,34 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <div>
-                    <button>Add to Cart</button>
-                  </div>
+                  {(product.qty || 0) > 0 ? (
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <select className="px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 text-sm focus:ring-brand-500 focus:border-brand-500 min-w-[80px]">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                        <option>6</option>
+                        <option>7</option>
+                        <option>8</option>
+                        <option>9</option>
+                        <option>10</option>
+                      </select>
+                      <Button size="sm" className="flex-1 font-medium shadow-sm hover:shadow-md" variant="primary">
+                        <svg className="w-4 h-4 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 4.5A2 2 0 005.5 18H16a2 2 0 002-2v-.5a1 1 0 00-1-1H4" />
+                        </svg>
+                        Add to Cart
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <Button size="sm" variant="outline" className="w-full font-medium opacity-50 cursor-not-allowed" disabled>
+                        Out of Stock
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
