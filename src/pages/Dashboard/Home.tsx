@@ -123,35 +123,46 @@ export default function Home() {
               </div>
             ) : (
               products.slice(0, 4).map((product, index) => (
-                <div key={product.id || index} className="group rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 cursor-pointer">
+                <div key={product.id || index} className="group rounded-2xl border border-gray-200 bg-white p-2 sm:p-2 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 cursor-pointer">
+                  <h5 className="font-semibold text-md text-gray-800 dark:text-white/95 mb-2 truncate pr-8">
+                    {product.name || 'Unnamed Product'}
+                  </h5>
                   <div className="flex flex-col lg:flex-row gap-4 lg:items-start">
                     <div className="flex-shrink-0">
                       <img 
                         className="w-24 h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 object-cover rounded-xl border shadow-sm group-hover:scale-[1.02] group-hover:shadow-md transition-all duration-300 bg-gray-100 dark:bg-gray-800" 
                         src={`${BASE_URL}uploads/${product.image}`} 
-                        alt={product.name || 'Product'}
+                        alt={product.name}
                         onError={(e) => { 
                           e.currentTarget.style.display = 'none';
-                          // Optional: show placeholder SVG
                         }} 
                       />
+                      <div className="flex flex-col gap-1 mb-3">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-medium text-gray-500 line-through dark:text-gray-400">
+                            ₹{product.mrp}
+                          </span>
+                          <span className="text-md font-bold text-brand-600 dark:text-brand-400">
+                            ₹{product.sale_price}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-full transition-colors ${
+                            (product.qty || 0) > 0 
+                              ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-200' 
+                              : 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-200'
+                          }`} title={(product.qty || 0) > 0 ? 'In Stock' : 'Out of Stock'}>
+                            {(product.qty || 0) > 0 ? '✓' : '✗'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between mb-2">
-                        <h4 className="font-bold text-xl text-gray-900 dark:text-white">
-                          ${product.mrp?.toFixed(2) || '0.00'}
-                        </h4>
-                        <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full dark:bg-green-900/50">
-                          In Stock
-                        </span>
-                      </div>
-                      <h5 className="font-semibold text-lg text-gray-800 dark:text-white/95 mb-2 truncate pr-8">
-                        {product.name || 'Unnamed Product'}
-                      </h5>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
-                        {product.short_description || 'No description available.'}
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-7 leading-relaxed">
+                        {product.short_description}
                       </p>
                     </div>
+                  </div>
+                  <div>
+                    <button>Add to Cart</button>
                   </div>
                 </div>
               ))
