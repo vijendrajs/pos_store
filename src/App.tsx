@@ -18,6 +18,7 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import Order_Summary from "./pages/Dashboard/Order_Summary";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/dashboard" element={<Home />} />
+            <Route index path="/order-summary/:orderId" element={<Order_Summary />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

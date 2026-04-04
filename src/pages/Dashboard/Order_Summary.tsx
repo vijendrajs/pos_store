@@ -1,4 +1,5 @@
 import {useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../../components/ui/modal";
 import PageMeta from "../../components/common/PageMeta";
@@ -27,7 +28,8 @@ interface CartItem {
   image: string;
 }
 
-export default function Home() {
+export default function Order_Summary() {
+  const { orderId } = useParams();
   const BASE_URL = import.meta.env.VITE_POS_STORE_BASE_URL;
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -343,4 +345,3 @@ export default function Home() {
     </>
   );
 }
-
