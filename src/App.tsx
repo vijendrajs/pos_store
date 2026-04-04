@@ -29,7 +29,7 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/dashboard" element={<Home />} />
-            <Route index path="/order-summary/:orderId" element={<Order_Summary />} />
+            <Route index path="/order-summary/:sequence_number" element={<Order_Summary />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
