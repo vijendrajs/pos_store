@@ -18,7 +18,8 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
-import Order_Summary from "./pages/Dashboard/Order_Summary";
+import Orders from "./pages/Dashboard/Orders";
+import Order_Summary from "./pages/Dashboard/Order_summary";
 
 export default function App() {
   return (
@@ -29,7 +30,9 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/dashboard" element={<Home />} />
+
             <Route index path="/order-summary/:sequence_number" element={<Order_Summary />} />
+            <Route index path="/orders" element={<Orders />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
