@@ -170,7 +170,7 @@ export default function Home() {
             No products found.
           </div>
         ) : (
-          products.slice(0, 4).map((product, index) => (
+          products.map((product, index) => (
             <div key={product.id || index} className="group rounded-2xl border border-gray-200 bg-white p-2 sm:p-2 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 cursor-pointer">
               <h5 className="font-semibold text-md text-gray-800 dark:text-white/95 mb-2 truncate pr-8">
                 {product.name || 'Unnamed Product'}
