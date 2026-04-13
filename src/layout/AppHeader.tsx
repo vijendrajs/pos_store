@@ -11,9 +11,6 @@ import UserDropdown from "../components/header/UserDropdown";
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
-  // const [last7DaysCount ,setLast7DaysCount] = useState(0);
-  // const [last30DaysCount , setLast30DaysCount] = useState(0);
-
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -26,14 +23,15 @@ const AppHeader: React.FC = () => {
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
-  
+
   const [todayCount, setTodayCount] = useState(0);
   const [sevenDaysCount, setSevenDaysCount] = useState(0);
   const [thirtyDaysCount, setThirtyDaysCount] = useState(0);
 
   useEffect(() => {
     const token = sessionStorage.getItem("userToken"); // get token
-    
+    const BASE_URL = import.meta.env.VITE_POS_STORE_BASE_URL;
+
     // Helper to format date to YYYY-MM-DD
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
@@ -43,21 +41,21 @@ const AppHeader: React.FC = () => {
     };
 
     const today = new Date();
-    const todayStr = formatDate(today); // Today
+    const todayStr = formatDate(today);
 
     const last7 = new Date();
     last7.setDate(today.getDate() - 7);
-    const last7Str = formatDate(last7); // 7 days ago
+    const last7Str = formatDate(last7);
 
     const last30 = new Date();
     last30.setDate(today.getDate() - 30);
-    const last30Str = formatDate(last30); // 30 days ago
+    const last30Str = formatDate(last30);
 
     // Helper to fetch count
     const fetchCount = async (startDate: string, endDate: string) => {
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/order/count?start_date=${startDate}&end_date=${endDate}`,
+          `${BASE_URL}order/count?start_date=${startDate}&end_date=${endDate}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -104,9 +102,6 @@ const AppHeader: React.FC = () => {
     };
   }, []);
 
-
- 
-  
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
@@ -149,21 +144,21 @@ const AppHeader: React.FC = () => {
             )}
             {/* Cross Icon */}
           </button>
-  <div className="flex items-center gap-3 text-xs font-semibold">
+          <div className="flex items-center gap-3 text-xs font-semibold">
 
-  <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-    Today: {todayCount}
-  </div>
+            <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+              Today: {todayCount}
+            </div>
 
-  <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
-    7 Days:    {sevenDaysCount}
-  </div>
+            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
+              7 Days:    {sevenDaysCount}
+            </div>
 
-  <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">
-    30 Days:   {thirtyDaysCount}
-  </div>
+            <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">
+              30 Days:   {thirtyDaysCount}
+            </div>
 
-</div>
+          </div>
 
 
         </div>
@@ -180,12 +175,12 @@ const AppHeader: React.FC = () => {
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
           </div>
-        
+
           {/* <!-- User Area --> */}
           <UserDropdown />
         </div>
       </div>
-     
+
     </header>
 
   );
