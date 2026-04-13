@@ -42,6 +42,7 @@ const AppHeader: React.FC = () => {
 
     const today = new Date();
     const todayStr = formatDate(today);
+    console.log("Today String:", todayStr);
 
     const last7 = new Date();
     last7.setDate(today.getDate() - 7);
@@ -65,7 +66,7 @@ const AppHeader: React.FC = () => {
         );
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const data = await res.json();
-        return data.count || 0;
+        return data?.data?.custom_count || 0;
       } catch (err) {
         console.error("Fetch error:", err);
         return 0;
