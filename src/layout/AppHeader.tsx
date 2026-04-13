@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
+
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 
+
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
-  const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  // const [last7DaysCount ,setLast7DaysCount] = useState(0);
+  // const [last30DaysCount , setLast30DaysCount] = useState(0);
 
+  const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
       toggleSidebar();
@@ -22,7 +26,67 @@ const AppHeader: React.FC = () => {
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
+  
+  const [todayCount, setTodayCount] = useState(0);
+  const [sevenDaysCount, setSevenDaysCount] = useState(0);
+  const [thirtyDaysCount, setThirtyDaysCount] = useState(0);
 
+  useEffect(() => {
+    const token = sessionStorage.getItem("userToken"); // get token
+    
+    // Helper to format date to YYYY-MM-DD
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const today = new Date();
+    const todayStr = formatDate(today); // Today
+
+    const last7 = new Date();
+    last7.setDate(today.getDate() - 7);
+    const last7Str = formatDate(last7); // 7 days ago
+
+    const last30 = new Date();
+    last30.setDate(today.getDate() - 30);
+    const last30Str = formatDate(last30); // 30 days ago
+
+    // Helper to fetch count
+    const fetchCount = async (startDate: string, endDate: string) => {
+      try {
+        const res = await fetch(
+          `http://127.0.0.1:8000/order/count?start_date=${startDate}&end_date=${endDate}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const data = await res.json();
+        return data.count || 0;
+      } catch (err) {
+        console.error("Fetch error:", err);
+        return 0;
+      }
+    };
+
+    // Fetch all counts
+    const fetchAllCounts = async () => {
+      const todayC = await fetchCount(todayStr, todayStr);
+      const last7C = await fetchCount(last7Str, todayStr);
+      const last30C = await fetchCount(last30Str, todayStr);
+
+      setTodayCount(todayC);
+      setSevenDaysCount(last7C);
+      setThirtyDaysCount(last30C);
+    };
+
+    fetchAllCounts();
+  }, []);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,6 +104,9 @@ const AppHeader: React.FC = () => {
     };
   }, []);
 
+
+ 
+  
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
@@ -82,27 +149,45 @@ const AppHeader: React.FC = () => {
             )}
             {/* Cross Icon */}
           </button>
+  <div className="flex items-center gap-3 text-xs font-semibold">
 
-          
+  <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+    Today: {todayCount}
+  </div>
+
+  <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
+    7 Days:    {sevenDaysCount}
+  </div>
+
+  <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">
+    30 Days:   {thirtyDaysCount}
+  </div>
+
+</div>
+
 
         </div>
         <div
-          className={`${
-            isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          className={`${isApplicationMenuOpen ? "flex" : "hidden"
+            } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}
             <ThemeToggleButton />
+
+
             {/* <!-- Dark Mode Toggler --> */}
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
           </div>
+        
           {/* <!-- User Area --> */}
           <UserDropdown />
         </div>
       </div>
+     
     </header>
+
   );
 };
 

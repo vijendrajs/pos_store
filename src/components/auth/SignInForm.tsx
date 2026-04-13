@@ -19,8 +19,10 @@ function Userlogin() {
         const loginData = {
             email_id: email_id,
             password: password
+         
         };
-
+        
+          // console.log(loginData)
         try {
 
            const response = await fetch(`${BASE_URL}user_login_token/check`, {
