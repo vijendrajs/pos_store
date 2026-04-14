@@ -52,9 +52,6 @@ export default function BarChartOne() {
   const fetchGraphData = async (start: string, end: string) => {
     try {
       setError("");
-      console.log('BASE_URL:', BASE_URL);
-      console.log('Token:', sessionStorage.getItem("userToken") ? 'exists' : 'missing');
-      console.log('API URL:', `${BASE_URL}graph?start_date=${start}&end_date=${end}`);
       
       const token = sessionStorage.getItem("userToken");
       if (!token) {
@@ -72,16 +69,13 @@ export default function BarChartOne() {
         }
       );
 
-      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errText = await response.text();
-        console.error('Response error:', errText);
         throw new Error(`API error: ${response.status} - ${errText.slice(0,100)}`);
       }
 
       const result: ApiResponse = await response.json();
-      console.log('API Response:', result);
       
       if (result.status !== 1) {
         throw new Error(result.message || "API returned error");
@@ -92,34 +86,30 @@ export default function BarChartOne() {
 
       setChartData({ categories, seriesData });
     } catch (err: any) {
-      console.error('Fetch error:', err);
       setError(err.message);
       setChartData({ categories: [], seriesData: [] });
     } finally {
     }
   };
 
-  const handleDateChange = (dates: Date[], dateStrings: string[]) => {
-    if (dateStrings.length === 2) {
-      // Validate end date <= today
-      const end = new Date(dateStrings[1]);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      if (end > today) {
-        dateStrings[1] = formatDate(today);
-        if (datePickerRef.current) {
-          (datePickerRef.current as any)._flatpickr.setDate([dateStrings[0], dateStrings[1]], false);
-        }
-      }
-      setStartDate(dateStrings[0]);
-      setEndDate(dateStrings[1]);
+  const handleDateChange = (dateStrings: string[], range: string) => {
+    if (dateStrings.length == 2) {
+      let [start, end] = range.split(" to ");
+      start = formatDate(dateStrings[0])
+      end = formatDate(dateStrings[1])      
+      setStartDate(start);
+      setEndDate(end);
       setQuickRange("custom");
+      fetchGraphData(start, end);
     }
   };
 
   const handleQuickRangeChange = (value: string) => {
-    if (value === "custom") return;
     setQuickRange(value);
+    if (value === "custom") {
+      return;
+    }
+    // Quick range logic
     const end = new Date();
     end.setHours(23, 59, 59, 999);
     let start = new Date(end);
@@ -156,7 +146,15 @@ export default function BarChartOne() {
   };
 
   const handleReset = () => {
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(end.getDate() - 30);
+    const startStr = formatDate(start);
+    const endStr = formatDate(end);
+    setStartDate(startStr);
+    setEndDate(endStr);
     setQuickRange("month");
+    fetchGraphData(startStr, endStr);
   };
 
   useEffect(() => {
@@ -168,11 +166,11 @@ export default function BarChartOne() {
     setStartDate(startStr);
     setEndDate(endStr);
     setQuickRange("month");
-    // Don't auto-fetch on mount to avoid loader if no token/API
+    fetchGraphData(startStr, endStr); // Auto-fetch default 1 month
   }, []);
 
   useEffect(() => {
-    if (datePickerRef.current && !loading) {
+    if (datePickerRef.current) {
       const fp = (datePickerRef.current as any)._flatpickr;
       if (fp) {
         fp.set('maxDate', 'today');
@@ -225,6 +223,9 @@ export default function BarChartOne() {
       title: {
         text: undefined,
       },
+      tickAmount: 5,
+      decimalsInFloat: 0,
+      forceNiceScale: true,
     },
     grid: {
       yaxis: {
@@ -274,27 +275,29 @@ export default function BarChartOne() {
           <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Quick Range</label>
           <Select
             options={quickOptions}
-            value={quickRange}
+            defaultValue={quickRange}
             onChange={handleQuickRangeChange}
             placeholder="Select range"
           />
         </div>
         
-        {/* Date Picker */}
+        {/* Date Picker - Conditional */}
         <div className="flex-1 relative">
-          <DatePicker
-            ref={datePickerRef}
-            id="chart-date-range"
-            mode="range"
-            label="Custom Date Range"
-            placeholder="Select start - end date"
-            onChange={handleDateChange}
-          />
+          {quickRange === 'custom' && (
+            <DatePicker
+              ref={datePickerRef}
+              id="chart-date-range"
+              mode="range"
+              label="Date Range"
+              placeholder="Select start - end date"
+              onChange={handleDateChange}
+            />
+          )}
         </div>
         
         {/* Buttons */}
         <div className="flex gap-2">
-          <Button onClick={handleSearch}>
+          <Button onClick={handleSearch} disabled={!startDate || !endDate}>
             Search
           </Button>
           <Button onClick={handleReset} variant="outline">
