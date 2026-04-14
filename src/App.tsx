@@ -33,12 +33,9 @@ export default function App() {
 
             <Route index path="/order-summary/:sequence_number" element={<Order_Summary />} />
             <Route index path="/orders" element={<Orders />} />
+            <Route index path="/sales" element={<BarChart />} />
 
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
-
+          
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
