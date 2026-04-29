@@ -1,8 +1,19 @@
-# Add Toast Notification After Add to Cart
+# POS Store - Fix Quantity +/- Buttons
 
-## Steps:
-- [x] 1. Install sonner toast library
-- [x] 2. Add <Toaster /> to src/App.tsx
-- [x] 3. Add toast.success call in Home.tsx handleAddToCart
-- [x] 4. Test functionality
+Current Status: Code looks correct, needs verification.
+
+**Step 1 (Done): Analysis complete**
+
+**Step 2:** Test functionality
+- Run dev server
+- Check if +/- respond, input updates, cart gets correct qty
+
+**Step 3:** If broken, potential fixes:
+- Ensure product.qty >1 from API
+- Check console for logs
+- Minor ref timing fix with useEffect
+
+Progress: Step 1 ✅
+
+Confirm if dev server running, or test results.
 

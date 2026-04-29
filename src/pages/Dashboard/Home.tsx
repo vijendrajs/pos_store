@@ -1,10 +1,12 @@
-import {useEffect, useState } from "react";
+import {useEffect, useState, useRef } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../../components/ui/modal";
 import PageMeta from "../../components/common/PageMeta";
 import Button from "../../components/ui/button/Button";
 import { toast } from "sonner";
+import QuantityStepper, { QuantityStepperRef } from "../../components/ui/stepper/QuantityStepper";
 import CheckoutModal from './CheckoutModal';
+import ProductItem from "../../components/ecommerce/ProductItem";
 
 interface Product {
   id: number | string;
@@ -14,7 +16,6 @@ interface Product {
   sale_price: number;
   qty: number;
   short_description: string;
-  selectRef?: HTMLSelectElement;
 }
 
 interface CartItem {
@@ -57,8 +58,8 @@ export default function Home() {
         }
       );
       if (!response.ok) throw new Error("Failed to fetch products");
-        const data = await response.json();
-        setProducts(data.data);
+      const data = await response.json();
+      setProducts(data.data);
     } catch (err) {
       console.error(err);
       setError("Error check console");
@@ -84,14 +85,14 @@ export default function Home() {
     fetchProducts(value);
   };
 
-  const handleAddToCart = (productId: string, selectElement: HTMLSelectElement, name: string, short_description: string, mrp: number, sale_price: number, image: string) => {
-    const qty = parseInt(selectElement.value);
+  const handleAddToCart = (productId: string, qtyRef: React.RefObject<QuantityStepperRef>, name: string, short_description: string, mrp: number, sale_price: number, image: string) => {
+    const qty = qtyRef?.current?.getValue() || 1;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingIndex = cart.findIndex((item: CartItem) => item.product_id === productId);
     if (existingIndex > -1) {
       cart[existingIndex].qty = qty;
     } else {
-      cart.push({ product_id: productId, qty, name: name, short_description: short_description, mrp: mrp, sale_price:sale_price, image:image});
+      cart.push({ product_id: productId, qty, name, short_description, mrp, sale_price, image});
     }
     localStorage.setItem('cart', JSON.stringify(cart));
     toast.success("Product added to cart!");
@@ -153,7 +154,7 @@ export default function Home() {
     </div>
 
     <div className="col-span-12 space-y-6 xl:col-span-7 mt-4 mb-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4  md:gap-6">
         {loading ? (
           Array(3).fill(0).map((_, i) => (
             <div key={i} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 animate-pulse">
@@ -170,77 +171,19 @@ export default function Home() {
             No products found.
           </div>
         ) : (
-          products.map((product, index) => (
-            <div key={product.id || index} className="group rounded-2xl border border-gray-200 bg-white p-2 sm:p-2 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 cursor-pointer">
-              <h5 className="font-semibold text-md text-gray-800 dark:text-white/95 mb-2 truncate pr-8">
-                {product.name || 'Unnamed Product'}
-              </h5>
-              <div className="flex flex-col lg:flex-row gap-4 lg:items-start">
-                <div className="flex-shrink-0">
-                  <img 
-                    className="w-24 h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 object-cover rounded-xl border shadow-sm group-hover:scale-[1.02] group-hover:shadow-md transition-all duration-300 bg-gray-100 dark:bg-gray-800" 
-                    src={`${BASE_URL}uploads/${product.image}`} 
-                    alt={product.name}
-                    onError={(e) => { 
-                      e.currentTarget.style.display = 'none';
-                    }} 
-                  />
-                  <div className="flex flex-col gap-1 mb-3 mt-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-medium text-gray-500 line-through dark:text-gray-400">
-                        ₹{product.mrp}
-                      </span>
-                      <span className="text-md font-bold text-brand-600 dark:text-brand-400">
-                        ₹{product.sale_price}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-7 leading-relaxed">
-                    {product.short_description}
-                  </p>
-                </div>
-              </div>
-              {(product.qty || 0) > 0 ? (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <select className="px-3 py-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 text-sm focus:ring-brand-500 focus:border-brand-500 min-w-[80px]">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                    <option>6</option>
-                    <option>7</option>
-                    <option>8</option>
-                    <option>9</option>
-                    <option>10</option>
-                  </select>
-                  <Button size="sm" className="flex-1 font-medium shadow-sm hover:shadow-md" variant="primary" onClick={(e) => {
-                      const button = e.currentTarget;
-                      const select = button.previousElementSibling as HTMLSelectElement;
-                      if (select) handleAddToCart(product.id as string, select, product.name as string, product.short_description as string, product.mrp as number, product.sale_price as number, `${BASE_URL}uploads/${product.image}` as string);
-                    }}>
-                    <svg className="w-4 h-4 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 4.5A2 2 0 005.5 18H16a2 2 0 002-2v-.5a1 1 0 00-1-1H4" />
-                    </svg>
-                    Add to Cart
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <Button size="sm" variant="outline" className="w-full font-medium opacity-50 cursor-not-allowed" disabled>
-                    Out of Stock
-                  </Button>
-                </div>
-              )}
-            </div>
+          products.map((product) => (
+            <ProductItem 
+              key={product.id}
+              product={product}
+              BASE_URL={BASE_URL}
+              onAddToCart={handleAddToCart}
+            />
           ))
         )}
       </div>
     </div>
 
-<Modal isOpen={cartModal.isOpen} onClose={cartModal.closeModal} className="max-w-6xl p-6">
+    <Modal isOpen={cartModal.isOpen} onClose={cartModal.closeModal} className="max-w-6xl p-6">
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart ({cartCount})</h2>
@@ -286,49 +229,50 @@ export default function Home() {
                     </div>
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-sm font-semibold text-gray-800 dark:text-white">Qty: {item.qty}</span>
-                          <Button size="sm" variant="outline" className="px-3 py-1 text-xs" onClick={(e) => {
-                            e.stopPropagation();
-                            const currentId = item.product_id;
-                            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-                            const newCart = cart.filter((cartItem: CartItem) => cartItem.product_id !== currentId);
-                            localStorage.setItem('cart', JSON.stringify(newCart));
-                            setCartItems(newCart);
-                            setCartCount(new Set(newCart.map((cartItem: CartItem) => cartItem.product_id)).size);
-                          }}>
-                            Remove
-                          </Button>
+                      <Button size="sm" variant="outline" className="px-3 py-1 text-xs" onClick={(e) => {
+                        e.stopPropagation();
+                        const currentId = item.product_id;
+                        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                        const newCart = cart.filter((cartItem: CartItem) => cartItem.product_id !== currentId);
+                        localStorage.setItem('cart', JSON.stringify(newCart));
+                        setCartItems(newCart);
+                        setCartCount(new Set(newCart.map((cartItem: CartItem) => cartItem.product_id)).size);
+                      }}>
+                        Remove
+                      </Button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-300">Sub Total:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        ₹{cartItems.reduce((sum, item) => sum + (item.mrp * item.qty), 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-300">Discount:</span>
-                      <span className="text-green-600 font-semibold">- ₹{cartItems.reduce((sum, item) => sum + (item.mrp - item.sale_price * item.qty), 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="border-t pt-3 border-gray-200 dark:border-gray-600">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span className="text-gray-900 dark:text-white">Total:</span>
-                        <span className="text-gray-900 dark:text-white">
-                          ₹{cartItems.reduce((sum, item) => sum + (item.sale_price * item.qty), 0).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                    <Button size="lg" className="w-full font-semibold" variant="primary" onClick={checkoutModal.openModal}>
-                      Proceed to Checkout
-                    </Button>
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">Sub Total:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ₹{cartItems.reduce((sum, item) => sum + (item.mrp * item.qty), 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">Discount:</span>
+                  <span className="text-green-600 font-semibold">
+                    - ₹{cartItems.reduce((sum, item) => sum + ((item.mrp - item.sale_price) * item.qty), 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="border-t pt-3 border-gray-200 dark:border-gray-600">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span className="text-gray-900 dark:text-white">Total:</span>
+                    <span className="text-gray-900 dark:text-white">
+                      ₹{cartItems.reduce((sum, item) => sum + (item.sale_price * item.qty), 0).toLocaleString()}
+                    </span>
                   </div>
                 </div>
+                <Button size="lg" className="w-full font-semibold" variant="primary" onClick={checkoutModal.openModal}>
+                  Proceed to Checkout
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -338,7 +282,6 @@ export default function Home() {
       isOpen={checkoutModal.isOpen} 
       onClose={checkoutModal.closeModal} 
       cartItems={cartItems}
-      onPlaceOrder={handleClearCart} 
     />
     </>
   );
